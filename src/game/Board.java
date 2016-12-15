@@ -24,6 +24,13 @@ public class Board
         return new Tile[]{Tile.WHITE, Tile.BLACK};
     }
 
+    public void go(int rowFrom, int colFrom, int rowTo, int colTo)
+    {
+        Tile movingTile = getTile(rowFrom, colFrom);
+        setTile(rowFrom, colFrom, Tile.NIL);
+        setTile(rowTo, colTo, movingTile);
+    }
+
     void initBoard()
     {
         Arrays.fill(getTiles(), Tile.NIL);

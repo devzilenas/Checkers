@@ -1,5 +1,7 @@
 import gui.Grid;
 import gui.GridMouseListener;
+import net.Client;
+import net.Server;
 
 import javax.swing.*;
 
@@ -8,8 +10,8 @@ import javax.swing.*;
  */
 public class GuiDemo
 {
-    static Grid grid;
-    public static void showGrid()
+    public static final int PORT = 50001;
+    public static void showGrid(String what)
     {
         JFrame frame = new JFrame("Checkers client");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -19,8 +21,8 @@ public class GuiDemo
         panel.setLayout(bl);
 
         panel.add(new JLabel("Board"));
-        Grid grid = new Grid(400, 400, 8,8);
-        grid.playFor("YOUR ARE PLAYNG FOR WHITE");
+        Client client = new Client(PORT);
+        Grid grid = new Grid(400, 400, 8, 8, client);
         grid.addMouseListener(new GridMouseListener());
         panel.add(grid);
 
@@ -32,13 +34,26 @@ public class GuiDemo
 
     public static void main(String[] args)
     {
+        Server server = new Server(PORT);
+        server.start();
         javax.swing.SwingUtilities.invokeLater(
                 new Runnable()
                 {
                     @Override
                     public void run()
                     {
-                        showGrid();
+                        showGrid("BLACK");
+                    }
+                }
+        );
+
+        javax.swing.SwingUtilities.invokeLater(
+                new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        showGrid("WHITE");
                     }
                 }
         );

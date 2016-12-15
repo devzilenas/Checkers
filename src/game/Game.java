@@ -9,6 +9,10 @@ public class Game
 {
     Board board;
 
+    public Board getBoard()
+    {
+        return board;
+    }
     public Game()
     {
         board = new Board();
@@ -78,6 +82,11 @@ public class Game
         int yFrom;
         int xTo  ;
         int yTo  ;
+
+        public Move(int fromRow, int fromCol, int toRow, int toCol)
+        {
+            this(String.format("%d,%d", fromRow, fromCol), String.format("%d,%d", toRow, toCol));
+        }
 
         /**
          * Expecting strings in format "x,y" (no quotes).

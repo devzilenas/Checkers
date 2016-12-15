@@ -1,9 +1,12 @@
 package net;
 
 import com.sun.javaws.exceptions.InvalidArgumentException;
+import game.Board;
 import game.Game;
 import sun.plugin2.message.Message;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
@@ -11,6 +14,18 @@ import java.util.Scanner;
 public class Client
     extends Thread
 {
+
+    public ActionListener getActionListener()
+    {
+        return actionListener;
+    }
+
+    public void setActionListener(ActionListener actionListener)
+    {
+        this.actionListener = actionListener;
+    }
+
+    ActionListener actionListener;
 
     public Game getGame()
     {
@@ -23,6 +38,10 @@ public class Client
     }
 
     Game game;
+    public Board getBoard ()
+    {
+        return getGame().getBoard();
+    }
 
     public Client(int port)
     {
@@ -50,6 +69,11 @@ public class Client
     }
 
     CommunicationModule communicationModule;
+
+    public void makeMove(int fromRow, int fromCol, int toRow, int toCol)
+    {
+        getCommunicationModule().say("MOVE " + getGame(). new Move(fromRow, fromCol, toRow, toCol).toString2());
+    }
 
     @Override
     public void run()
@@ -82,7 +106,7 @@ public class Client
                 throw new IllegalArgumentException("Messsage cannot be null");
             if (message.equals("YOUR TURN"))
             {
-                getCommunicationModule().say("MOVE 1,1 2,1");
+//                getCommunicationModule().say("MOVE 1,1 2,1");
             }
             else if (message.startsWith("OPPONENT MOVE "))
             {
@@ -94,10 +118,20 @@ public class Client
                 String to   = scanner.next();
                 Game.Move move = getGame(). new Move(from, to);
                 echo("Received opponent move: " + move);
+
+                //write move
+                getBoard().go(move.getxFrom(), move.getyFrom(), move.getxTo(), move.getyTo());
+                //inform action listener
+                getActionListener().actionPerformed(new ActionEvent(this, 1, "OPPONENT MOVE " + move.toString2()));
+
             }
-            else if (message.startsWith("YOU ARE PLAYING FOR"))
+            else if (message.equals("YOU ARE PLAYING FOR BLACK"))
             {
-                echo(message);
+                getActionListener().actionPerformed(new ActionEvent(this, 1, "YOU ARE PLAYING FOR BLACK"));
+            }
+            else if (message.equals("YOU ARE PLAYING FOR WHITE"))
+            {
+                getActionListener().actionPerformed(new ActionEvent(this, 1, "YOU ARE PLAYING FOR WHITE"));
             }
             else if (message.startsWith("PLEASE OCCUPY SEATS"))
             {

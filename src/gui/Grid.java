@@ -1,17 +1,23 @@
 package gui;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import game.*;
+import net.Client;
 
 /**
  * Created by m.zilenas on 2016-12-15.
  */
 public class Grid
     extends Canvas
+    implements ActionListener
 {
+    Client client;
+
     int rows;
     int cols;
     Dimension dimension;
@@ -37,7 +43,6 @@ public class Grid
     {
         if (msg.endsWith("BLACK"))
         {
-            setMyTile(Tile.BLACK);
         }
         else if (msg.endsWith("WHITE"))
         {
@@ -160,7 +165,22 @@ public class Grid
             //first let's check if target is empty rectangle
             if (tile == Tile.NIL)
             {
+                //let's remember what was the first selected rectangle
+                Rectangle r1 = getActiveRectangle();
                 r.setActive(true);
+
+                //now we can initiate a move from one rectangle that has checker to empty rectangle
+                int toRow = getRectangleRow(r);
+                int toCol = getRectangleCol(r);
+                int fromRow = getRectangleRow(r1);
+                int fromCol = getRectangleCol(r1);
+
+                //Update board
+                getBoard().go(fromRow, fromCol, toRow, toCol);
+                //Send message to client
+                getClient().makeMove(fromRow, fromCol, toRow, toCol);
+
+                unsetActiveRectangles();
             }
         }
     }
@@ -170,12 +190,18 @@ public class Grid
         this.myTile = myTile;
     }
 
-    public Grid(int width, int height, int rows, int cols)
+    public Grid(int width, int height, int rows, int cols, Client client)
     {
         this.dimension  = new Dimension(width, height);
         this.rows = rows;
         this.cols = cols;
         this.board = new Board(rows, cols);
+
+        this.client = client;
+        getClient().start();
+
+        //install itself as action listener for client
+        client.setActionListener(this);
 
         rectangles = new LinkedList<>();
         for (int row = 0; row < getRows(); row++)
@@ -246,7 +272,7 @@ public class Grid
 
     public Board getBoard()
     {
-        return board;
+        return getClient().getBoard();
     }
 
     @Override
@@ -292,5 +318,29 @@ public class Grid
     public java.awt.Dimension getPreferredSize()
     {
         return new java.awt.Dimension(getWidth(), getHeight());
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+        String message = e.getActionCommand();
+
+        if (message.equals("YOU ARE PLAYING FOR BLACK"))
+        {
+            setMyTile(Tile.BLACK);
+        }
+        else if (message.equals("YOU ARE PLAYING FOR WHITE"))
+        {
+            setMyTile(Tile.WHITE);
+        }
+        else
+        {
+        }
+        repaint();
+    }
+
+    public Client getClient()
+    {
+        return client;
     }
 }
