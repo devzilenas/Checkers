@@ -1,15 +1,23 @@
 package game;
 
+import gui.Grid;
+
 import java.util.Arrays;
 
 public class Board
 {
-    public enum Tile
-    {
-        WHITE, BLACK, EMPTY
-    }
+    Tile[] tiles = null;
+    int rows;
+    int cols;
 
-    Tile[] board;
+    public int getRows()
+    {
+        return rows;
+    }
+    public int getCols()
+    {
+        return cols;
+    }
 
     public static Tile[] playableTiles()
     {
@@ -18,18 +26,39 @@ public class Board
 
     void initBoard()
     {
-        board = new Board.Tile[getWidth()*getHeight()];
-        Arrays.fill(board, Tile.EMPTY);
+        Arrays.fill(getTiles(), Tile.NIL);
+
+        for (int row = 0; row < 3; row++)
+        {
+            for (int col = 0; col < getCols(); col++)
+            {
+                if ( (col + (row  % 2)) % 2 != 0)
+                {
+                    put(Tile.BLACK, row, col);
+                }
+            }
+        }
+
+        for (int row = getRows() - 3; row < getRows(); row++)
+        {
+            for (int col = 0; col < getCols(); col++)
+            {
+                if ((col  + (row % 2)) % 2 != 0)
+                {
+                    put(Tile.WHITE, row, col);
+                }
+            }
+        }
     }
 
-    public Tile[] getBoard()
+    public Tile[] getTiles()
     {
-        return board;
+        return tiles;
     }
 
-    public void setBoard(Tile[] board)
+    public void setTiles(Tile[] tiles)
     {
-        this.board = board;
+        this.tiles = tiles;
     }
 
     public int getWidth()
@@ -54,10 +83,11 @@ public class Board
 
     int width, height;
 
-    Board(int sizex, int sizey)
+    public Board(int rows, int cols)
     {
-        this.width = sizex;
-        this.height = sizey;
+        this.rows = rows;
+        this.cols = cols;
+        this.tiles = new Tile[getRows()*getCols()];
         initBoard();
     }
 
@@ -65,15 +95,25 @@ public class Board
     {
         this(8,8);
     }
+    void put(Tile tile, int atRow, int atCol)
+    {
+        tiles[getRows()*atRow+atCol] = tile;
+    }
+
+    Tile get(int row, int col)
+    {
+        return getTiles()[getRows()*row + col];
+    }
+    public Tile tile(int row, int col) {return get(row, col);}
 
     Tile getTile(int x,int y)
     {
-        return getBoard()[getWidth()*x+y];
+        return tile(x,y);
     }
 
     void setTile(int x, int y, Tile tile)
     {
-        board[getWidth()*x+y] = tile;
+       put(tile,x,y);
     }
 
     boolean isOccupied(int x, int y)
@@ -83,7 +123,6 @@ public class Board
 
     boolean isEmpty(int x, int y)
     {
-        return getTile(x,y).equals(Tile.EMPTY);
+        return getTile(x,y).equals(Tile.NIL);
     }
-
 }

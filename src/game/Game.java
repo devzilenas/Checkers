@@ -14,22 +14,22 @@ public class Game
         board = new Board();
     }
 
-    public Board.Tile winningTile()
+    public Tile winningTile()
     {
-        return Board.Tile.EMPTY;
+        return Tile.NIL;
     }
 
     public Object winnerIs()
     {
-        return winningTile() != Board.Tile.EMPTY ? occuppantOf(winningTile()) : null;
+        return winningTile() != Tile.NIL ? occuppantOf(winningTile()) : null;
     }
 
-    public Map<Object, Board.Tile> getSeats()
+    public Map<Object, Tile> getSeats()
     {
         return seats;
     }
 
-    Map<Object, Board.Tile> seats = new HashMap<>();
+    Map<Object, Tile> seats = new HashMap<>();
 
     public class Move
     {
@@ -112,17 +112,17 @@ public class Game
     /*
      * Tells which seat is occupied by Player
      */
-    public Board.Tile seatName(Object object)
+    public Tile seatName(Object object)
     {
         return getSeats().get(object);
     }
 
-    public Object occuppantOf(Board.Tile tile)
+    public Object occuppantOf(Tile tile)
     {
-        Iterator<Map.Entry<Object, Board.Tile>> iterator = getSeats().entrySet().iterator();
+        Iterator<Map.Entry<Object, Tile>> iterator = getSeats().entrySet().iterator();
         while (iterator.hasNext())
         {
-            Map.Entry<Object, Board.Tile> entry = iterator.next();
+            Map.Entry<Object, Tile> entry = iterator.next();
             if (entry.getValue() == tile)
             {
                 return entry.getKey();
@@ -131,15 +131,15 @@ public class Game
         return null;
     }
 
-    List<Board.Tile> occupiedSeats()
+    List<Tile> occupiedSeats()
     {
-        return new ArrayList<Board.Tile>(getSeats().values());
+        return new ArrayList<Tile>(getSeats().values());
     }
 
-    public Board.Tile[] getFreeSeats()
+    public Tile[] getFreeSeats()
     {
-        List<Board.Tile> tiles = new ArrayList<Board.Tile>(Arrays.asList(Board.playableTiles()));
+        List<Tile> tiles = new ArrayList<Tile>(Arrays.asList(Board.playableTiles()));
         tiles.removeAll(occupiedSeats());
-        return tiles.toArray(new Board.Tile[0]);
+        return tiles.toArray(new Tile[0]);
     }
 }
