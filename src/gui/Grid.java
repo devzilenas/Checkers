@@ -22,32 +22,26 @@ public class Grid
     int cols;
     Dimension dimension;
     List<Rectangle> rectangles;
-    List<Checker>   checkers  ;
+    List<CheckerCircle>   circles;
     Board board;
 
-    public Tile getMyTile()
+    boolean myTurn; //this is set to True when "YOUR TURN" message is received.
+
+    CheckerCircle activeCircle;
+    CheckerColor myColor; //what color client is playing for
+
+    public void setMyColor(CheckerColor color)
     {
-        return myTile;
+        this.myColor = color;
+    }
+    public CheckerColor getMyColor()
+    {
+        return myColor;
     }
 
-    Tile myTile; //what tile client is playing for
-
-    Checker activeChecker;
-
-    public List<Checker> getCheckers()
+    public List<CheckerCircle> getCircles()
     {
-        return checkers;
-    }
-
-    public void playFor(String msg)
-    {
-        if (msg.endsWith("BLACK"))
-        {
-        }
-        else if (msg.endsWith("WHITE"))
-        {
-            setMyTile(Tile.WHITE);
-        }
+        return circles;
     }
 
     public int getRectangleRow(Rectangle rectangle)
@@ -91,7 +85,7 @@ public class Grid
 
     List<Rectangle> getActiveRectangles()
     {
-        List<Rectangle> temporary = new LinkedList<Rectangle>(getRectangles());
+        List<Rectangle> temporary = new LinkedList<>(getRectangles());
         ListIterator<Rectangle> iterator = temporary.listIterator();
         while (iterator.hasNext())
         {
@@ -99,32 +93,6 @@ public class Grid
                 iterator.remove();
         }
         return temporary;
-    }
-
-    public void rectangleClicked(Rectangle r)
-    {
-        //allow clicking next rectangle
-        //this case is when the active already was set. Let's check if it's the next rectangle or the same.
-        if (getActiveRectangle() != null)
-        {
-            //unset previously active rectangle if clicked again on the same
-            //this way we can "undo"
-            if (getActiveRectangle().equals(r))
-            {
-                r.setActive(false);
-            }
-            else //some other rectangle was clicked
-            {
-                //If client tries to set more than two active rectangles then let client start over fresh
-                if (getActiveRectangles().size() == 2)
-                    unsetActiveRectangles();
-                setActiveRectangle(r);
-            }
-        }
-        else //if there where no active rectangles, then try to set
-        {
-            setActiveRectangle(r);
-        }
     }
 
     //unsets all active rectangles
@@ -147,7 +115,7 @@ public class Grid
         if(getActiveRectangle() == null) //let it set, because no active previously
         {
             //first check if allowed to set active
-            if (tile != getMyTile())
+            if (tile.getCheckerColor() != getMyColor())
             {
                 return;
             }
@@ -163,15 +131,15 @@ public class Grid
             //TODO add checkers rule checking here.
 
             //first let's check if target is empty rectangle
-            if (tile == Tile.NIL)
+            if (tile.isEmpty())
             {
                 //let's remember what was the first selected rectangle
                 Rectangle r1 = getActiveRectangle();
                 r.setActive(true);
 
                 //now we can initiate a move from one rectangle that has checker to empty rectangle
-                int toRow = getRectangleRow(r);
-                int toCol = getRectangleCol(r);
+                int   toRow = getRectangleRow(r);
+                int   toCol = getRectangleCol(r);
                 int fromRow = getRectangleRow(r1);
                 int fromCol = getRectangleCol(r1);
 
@@ -183,11 +151,6 @@ public class Grid
                 unsetActiveRectangles();
             }
         }
-    }
-
-    public void setMyTile(Tile myTile)
-    {
-        this.myTile = myTile;
     }
 
     public Grid(int width, int height, int rows, int cols, Client client)
@@ -244,16 +207,10 @@ public class Grid
         return rows;
     }
 
-    Checker makeChecker(Tile tile, int row, int col)
+    CheckerCircle makeCheckerCircle(Tile tile, int row, int col)
     {
-        switch (tile)
-        {
-            case WHITE:
-                return Checker.Lighter(row, col, getRectangle(row, col));
-            case BLACK:
-                return Checker.Darker(row, col, getRectangle(row, col));
-        }
-        throw new IllegalStateException("Terribly wrong");
+        Checker checker = tile.getChecker();
+        return new CheckerCircle(row, col, getRectangle(row, col), checker);
     }
 
     Rectangle makeRectangle(int row, int col)
@@ -303,11 +260,11 @@ public class Grid
             for (int col = 0; col < getCols(); col++)
             {
                 Tile tile = getBoard().tile(row, col);
-                if (tile != Tile.NIL)
+                if (tile.isOccupied())
                 {
-                    Checker checker = makeChecker(tile, row, col);
-                    g2.setPaint(Colors.checkerColor(checker.getCheckerColor()));
-                    g2.fill(checker);
+                    CheckerCircle checkerCircle = makeCheckerCircle(tile, row, col);
+                    g2.setPaint(Colors.checkerColor(checkerCircle.getChecker().getCheckerColor()));
+                    g2.fill(checkerCircle);
                 }
             }
             g2.setPaint(colors.alternateColor(Colors.RECTANGLE_COLOR, Colors.RECTANGLE_COLOR_ALTERNATE));
@@ -320,6 +277,10 @@ public class Grid
         return new java.awt.Dimension(getWidth(), getHeight());
     }
 
+    /**
+     * This is where messages are received. Parse them from here.
+     * @param e
+     */
     @Override
     public void actionPerformed(ActionEvent e)
     {
@@ -327,20 +288,63 @@ public class Grid
 
         if (message.equals("YOU ARE PLAYING FOR BLACK"))
         {
-            setMyTile(Tile.BLACK);
+            setMyColor(CheckerColor.BLACK);
         }
         else if (message.equals("YOU ARE PLAYING FOR WHITE"))
         {
-            setMyTile(Tile.WHITE);
+            setMyColor(CheckerColor.WHITE);
         }
-        else
+        else if (message.equals("YOUR TURN"))
         {
+            setMyTurn(true); //once set to true the grid allows to click a rectangle. See rectangleClicked() method below.
+            //make turn
         }
         repaint();
+    }
+
+    public void rectangleClicked(Rectangle r)
+    {
+        if (!isMyTurn())//do not react to rectangle clicks if not my turn.
+        {
+            return;
+        }
+
+        //allow clicking next rectangle
+        //this case is when the active already was set. Let's check if it's the next rectangle or the same.
+        if (getActiveRectangle() != null)
+        {
+            //unset previously active rectangle if clicked again on the same
+            //this way we can "undo"
+            if (getActiveRectangle().equals(r))
+            {
+                r.setActive(false);
+            } else //some other rectangle was clicked
+            {
+                //If client tries to set more than two active rectangles then let client start over fresh
+                if (getActiveRectangles().size() == 2)
+                {
+                    unsetActiveRectangles();
+                }
+                setActiveRectangle(r);
+            }
+        } else //if there where no active rectangles, then try to set
+        {
+            setActiveRectangle(r);
+        }
     }
 
     public Client getClient()
     {
         return client;
+    }
+
+    public boolean isMyTurn()
+    {
+        return myTurn;
+    }
+
+    public void setMyTurn(boolean myTurn)
+    {
+        this.myTurn = myTurn;
     }
 }

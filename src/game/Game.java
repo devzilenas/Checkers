@@ -1,5 +1,8 @@
 package game;
 
+import gui.Checker;
+import gui.CheckerColor;
+
 import java.util.*;
 
 /**
@@ -17,23 +20,22 @@ public class Game
     {
         board = new Board();
     }
-
-    public Tile winningTile()
+    public Checker winningChecker()
     {
-        return Tile.NIL;
+        return null;
     }
 
     public Object winnerIs()
     {
-        return winningTile() != Tile.NIL ? occuppantOf(winningTile()) : null;
+        return winningChecker() == null ? null : occuppantOf(winningChecker().getCheckerColor()) ;
     }
 
-    public Map<Object, Tile> getSeats()
+    public Map<Object, CheckerColor> getSeats()
     {
         return seats;
     }
 
-    Map<Object, Tile> seats = new HashMap<>();
+    Map<Object, CheckerColor> seats = new HashMap<>();
 
     public class Move
     {
@@ -121,18 +123,18 @@ public class Game
     /*
      * Tells which seat is occupied by Player
      */
-    public Tile seatName(Object object)
+    public CheckerColor seatName(Object object)
     {
         return getSeats().get(object);
     }
 
-    public Object occuppantOf(Tile tile)
+    public Object occuppantOf(CheckerColor color)
     {
-        Iterator<Map.Entry<Object, Tile>> iterator = getSeats().entrySet().iterator();
+        Iterator<Map.Entry<Object, CheckerColor>> iterator = getSeats().entrySet().iterator();
         while (iterator.hasNext())
         {
-            Map.Entry<Object, Tile> entry = iterator.next();
-            if (entry.getValue() == tile)
+            Map.Entry<Object, CheckerColor> entry = iterator.next();
+            if (entry.getValue() == color)
             {
                 return entry.getKey();
             }
@@ -140,15 +142,15 @@ public class Game
         return null;
     }
 
-    List<Tile> occupiedSeats()
+    List<CheckerColor> occupiedSeats()
     {
-        return new ArrayList<Tile>(getSeats().values());
+        return new ArrayList<CheckerColor>(getSeats().values());
     }
 
-    public Tile[] getFreeSeats()
+    public CheckerColor[] getFreeSeats()
     {
-        List<Tile> tiles = new ArrayList<Tile>(Arrays.asList(Board.playableTiles()));
-        tiles.removeAll(occupiedSeats());
-        return tiles.toArray(new Tile[0]);
+        List<CheckerColor> colors = new ArrayList<>(Arrays.asList(Board.playableCheckers()));
+        colors.removeAll(occupiedSeats());
+        return colors.toArray(new CheckerColor[0]);
     }
 }

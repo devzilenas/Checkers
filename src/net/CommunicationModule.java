@@ -88,7 +88,6 @@ public class CommunicationModule
         {
             System.err.println("Out not initialized yet!");
         }
-        System.out.println("said:"+msg);
         getOut().println(msg);
     }
 
@@ -107,7 +106,6 @@ public class CommunicationModule
         while (null == (str = readLine()))
         {
         }
-        System.out.println("read:"+str);
         return str;
     }
 }

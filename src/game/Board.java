@@ -1,8 +1,6 @@
 package game;
 
-import gui.Grid;
-
-import java.util.Arrays;
+import gui.CheckerColor;
 
 public class Board
 {
@@ -19,21 +17,25 @@ public class Board
         return cols;
     }
 
-    public static Tile[] playableTiles()
+    public static CheckerColor[] playableCheckers()
     {
-        return new Tile[]{Tile.WHITE, Tile.BLACK};
+        return new CheckerColor[]{CheckerColor.WHITE, CheckerColor.BLACK};
     }
 
     public void go(int rowFrom, int colFrom, int rowTo, int colTo)
     {
         Tile movingTile = getTile(rowFrom, colFrom);
-        setTile(rowFrom, colFrom, Tile.NIL);
+        setTile(rowFrom, colFrom, Tile.EMPTY());
         setTile(rowTo, colTo, movingTile);
     }
 
     void initBoard()
     {
-        Arrays.fill(getTiles(), Tile.NIL);
+        //Make empty tiles
+        for (int i = 0; i < getTiles().length; i++)
+        {
+            getTiles()[i] = Tile.EMPTY();
+        }
 
         for (int row = 0; row < 3; row++)
         {
@@ -41,7 +43,7 @@ public class Board
             {
                 if ( (col + (row  % 2)) % 2 != 0)
                 {
-                    put(Tile.BLACK, row, col);
+                    put(Tile.BLACK(), row, col);
                 }
             }
         }
@@ -52,7 +54,7 @@ public class Board
             {
                 if ((col  + (row % 2)) % 2 != 0)
                 {
-                    put(Tile.WHITE, row, col);
+                    put(Tile.WHITE(), row, col);
                 }
             }
         }
@@ -97,7 +99,6 @@ public class Board
         this.tiles = new Tile[getRows()*getCols()];
         initBoard();
     }
-
     public Board()
     {
         this(8,8);
@@ -106,30 +107,28 @@ public class Board
     {
         tiles[getRows()*atRow+atCol] = tile;
     }
-
     Tile get(int row, int col)
     {
         return getTiles()[getRows()*row + col];
     }
-    public Tile tile(int row, int col) {return get(row, col);}
-
+    public Tile tile(int row, int col)
+    {
+        return get(row, col);
+    }
     Tile getTile(int x,int y)
     {
         return tile(x,y);
     }
-
     void setTile(int x, int y, Tile tile)
     {
        put(tile,x,y);
     }
-
     boolean isOccupied(int x, int y)
     {
         return !isEmpty(x,y);
     }
-
     boolean isEmpty(int x, int y)
     {
-        return getTile(x,y).equals(Tile.NIL);
+        return getTile(x,y).isEmpty();
     }
 }

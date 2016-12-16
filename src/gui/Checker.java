@@ -4,33 +4,41 @@ package gui;
  * Created by m.zilenas on 2016-12-15.
  */
 public class Checker
-        extends Circle
 {
-    int row;
-    int col;
-
     public CheckerColor getCheckerColor()
     {
         return checkerColor;
     }
 
+    public void setCheckerColor(CheckerColor checkerColor)
+    {
+        this.checkerColor = checkerColor;
+    }
+
     CheckerColor checkerColor;
 
-    public Checker(int row, int col, Rectangle rectangle, CheckerColor color)
+    public Checker(CheckerColor color)
     {
-        super(rectangle);
-        this.row = row;
-        this.col = col;
         this.checkerColor = color;
     }
 
-    public static Checker Darker(int row, int col, Rectangle rectangle)
+    public static Checker Darker()
     {
-        return new Checker(row, col, rectangle, CheckerColor.BLACK);
+        return new Checker(CheckerColor.BLACK);
     }
 
-    public static Checker Lighter(int row, int col, Rectangle rectangle)
+    public static Checker Lighter()
     {
-        return new Checker(row, col, rectangle, CheckerColor.WHITE);
+        return new Checker(CheckerColor.WHITE);
+    }
+
+    public boolean isWhite()
+    {
+        return getCheckerColor() == CheckerColor.WHITE;
+    }
+
+    public boolean isBlack()
+    {
+        return getCheckerColor() == CheckerColor.BLACK;
     }
 }
