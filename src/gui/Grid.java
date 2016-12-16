@@ -23,7 +23,6 @@ public class Grid
     Dimension dimension;
     List<Rectangle> rectangles;
     List<CheckerCircle>   circles;
-    Board board;
 
     boolean myTurn; //this is set to True when "YOUR TURN" message is received.
 
@@ -128,7 +127,6 @@ public class Grid
         {
             //allow to setactive(true) only that rectangle that checked would conform with checkers rules:
             //empty rectangle, that can be reached by moving in checkers move or jumping over checkers.
-            //TODO add checkers rule checking here.
 
             //first let's check if target is empty rectangle
             if (tile.isEmpty())
@@ -142,12 +140,26 @@ public class Grid
                 int   toCol = getRectangleCol(r);
                 int fromRow = getRectangleRow(r1);
                 int fromCol = getRectangleCol(r1);
+                Move move = new Move(fromRow, fromCol, toRow, toCol);
 
-                //Update board
-                getBoard().go(fromRow, fromCol, toRow, toCol);
-                //Send message to client
-                getClient().makeMove(fromRow, fromCol, toRow, toCol);
+                //Check if move is valid
+                //TODO add checkers moving rules check
 
+                //if move is valid
+                if (getGame().isValidMove(move))
+                {
+                    //Update board
+                    getBoard().go(fromRow, fromCol, toRow, toCol);
+                    //Send message to client
+                    getClient().makeMove(fromRow, fromCol, toRow, toCol);
+                }
+                else
+                {
+                    //else if move is invalid
+                    //do not update board
+                }
+
+                //in any case (valid or not valid move)
                 unsetActiveRectangles();
             }
         }
@@ -158,7 +170,6 @@ public class Grid
         this.dimension  = new Dimension(width, height);
         this.rows = rows;
         this.cols = cols;
-        this.board = new Board(rows, cols);
 
         this.client = client;
         getClient().start();
@@ -227,6 +238,10 @@ public class Grid
         return getRectangles().get(getRows()*row + col);
     }
 
+    public Game getGame()
+    {
+        return getClient().getGame();
+    }
     public Board getBoard()
     {
         return getClient().getBoard();
@@ -325,6 +340,8 @@ public class Grid
                 {
                     unsetActiveRectangles();
                 }
+
+                //Now set active rectangle
                 setActiveRectangle(r);
             }
         } else //if there where no active rectangles, then try to set

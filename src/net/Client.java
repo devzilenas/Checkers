@@ -2,6 +2,7 @@ package net;
 
 import game.Board;
 import game.Game;
+import game.Move;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -73,7 +74,7 @@ public class Client
 
     public void makeMove(int fromRow, int fromCol, int toRow, int toCol)
     {
-        getCommunicationModule().say("MOVE " + getGame(). new Move(fromRow, fromCol, toRow, toCol).toString2());
+        getCommunicationModule().say("MOVE " + new Move(fromRow, fromCol, toRow, toCol).toString2());
     }
 
     public void informActionListener(String message)
@@ -108,7 +109,7 @@ public class Client
                         scanner.next();//skip words OPPONENT MOVE
                         String from = scanner.next();
                         String to = scanner.next();
-                        Game.Move move = getGame().new Move(from, to);
+                        Move move = new Move(from, to);
                         echo("Received opponent move: " + move);
 
                         //write move

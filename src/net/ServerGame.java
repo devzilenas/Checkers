@@ -1,6 +1,5 @@
 package net;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import game.*;
 
 import java.io.IOException;
@@ -132,7 +131,7 @@ public class ServerGame
                 scanner.next();//skip word MOVE
                 String from = scanner.next();
                 String to   = scanner.next();
-                Game.Move move = getGame(). new Move(from, to);
+                Move move = new Move(from, to);
                 System.out.println("Received client move: " + move);
 
                 //Pass this move to opponent
