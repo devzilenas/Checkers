@@ -102,6 +102,8 @@ public class Client
                         //getCommunicationModule().say("MOVE 1,1 2,1");
                     } else if (message.startsWith("OPPONENT MOVE "))
                     {
+                        informActionListener(message);
+
                         //Received opponent move
                         // Move received.
                         Scanner scanner = new Scanner(message);
@@ -110,12 +112,10 @@ public class Client
                         String from = scanner.next();
                         String to = scanner.next();
                         Move move = new Move(from, to);
-                        echo("Received opponent move: " + move);
+                        echo("Client received opponent move: " + move);
 
                         //write move
                         getBoard().go(move.getxFrom(), move.getyFrom(), move.getxTo(), move.getyTo());
-                        //inform action listener
-                        informActionListener("OPPONENT MOVE " + move.toString2());
                     }
                     else if (message.equals("YOU ARE PLAYING FOR BLACK"))
                     {

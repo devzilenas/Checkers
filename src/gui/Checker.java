@@ -41,4 +41,9 @@ public class Checker
     {
         return getCheckerColor() == CheckerColor.BLACK;
     }
+
+    public String toString()
+    {
+        return getCheckerColor().toString();
+    }
 }

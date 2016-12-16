@@ -5,7 +5,6 @@ package game;
  */
 public class Move
 {
-    int xFrom;
 
     public int getxFrom()
     {
@@ -47,6 +46,7 @@ public class Move
         this.yTo = yTo;
     }
 
+    int xFrom;
     int yFrom;
     int xTo;
     int yTo;

@@ -152,6 +152,8 @@ public class Grid
                     getBoard().go(fromRow, fromCol, toRow, toCol);
                     //Send message to client
                     getClient().makeMove(fromRow, fromCol, toRow, toCol);
+
+                    setMyTurn(false);
                 }
                 else
                 {
@@ -313,6 +315,10 @@ public class Grid
         {
             setMyTurn(true); //once set to true the grid allows to click a rectangle. See rectangleClicked() method below.
             //make turn
+        }
+        else if (message.startsWith("OPPONENT MOVE "))
+        {
+            //does nothing
         }
         repaint();
     }

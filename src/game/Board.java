@@ -1,5 +1,6 @@
 package game;
 
+import gui.Checker;
 import gui.CheckerColor;
 
 public class Board
@@ -24,9 +25,19 @@ public class Board
 
     public void go(int rowFrom, int colFrom, int rowTo, int colTo)
     {
+        System.out.println("Going from " + rowFrom + "," + colFrom);
+
         Tile movingTile = getTile(rowFrom, colFrom);
-        setTile(rowFrom, colFrom, Tile.EMPTY());
-        setTile(rowTo, colTo, movingTile);
+        Checker checker = movingTile.getChecker();
+        System.out.println("Found checker to move " + checker);
+
+        Tile movingToTile = getTile(rowTo, colTo);
+
+        //let's move a checker form one tile to another
+        movingTile.setChecker(null);
+        movingToTile.setChecker(checker);
+
+        System.out.println("Going to " + rowTo+ "," + colTo);
     }
 
     void initBoard()

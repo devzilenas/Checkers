@@ -132,10 +132,13 @@ public class ServerGame
                 String from = scanner.next();
                 String to   = scanner.next();
                 Move move = new Move(from, to);
-                System.out.println("Received client move: " + move);
+                System.out.println("Server received client move: " + move);
 
                 //Pass this move to opponent
                 say(opponentOf(player),"OPPONENT MOVE " + move.toString2());
+
+                //update board
+                getGame().getBoard().go(move.getxFrom(), move.getyFrom(), move.getxTo(), move.getyTo());
             }
             else
             {
@@ -171,7 +174,7 @@ public class ServerGame
 
     public ServerConnection opponentOf(ServerConnection sc)
     {
-        return getConnections()[0].equals(sc) ? getConnections()[1] : getConnections()[1];
+        return getConnections()[0].equals(sc) ? getConnections()[1] : getConnections()[0];
     }
 
     private boolean isConnected()
