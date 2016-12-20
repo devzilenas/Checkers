@@ -5,6 +5,21 @@ package gui;
  */
 public class Checker
 {
+    public boolean isMan()
+    {
+        return !isKing();
+    }
+    public boolean isKing()
+    {
+        return isKing;
+    }
+
+    public void setKing(boolean king)
+    {
+        isKing = king;
+    }
+
+    boolean isKing;
     public CheckerColor getCheckerColor()
     {
         return checkerColor;

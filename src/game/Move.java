@@ -1,10 +1,31 @@
 package game;
 
+import java.util.Collection;
+import java.util.LinkedList;
+
 /**
  * Created by m.zilenas on 2016-12-16.
  */
 public class Move
 {
+    public boolean isCapture()
+    {
+        return getCapture() != null;
+    }
+
+    public Tile getCapture()
+    {
+        return capture;
+    }
+
+    //A tile that contains capture
+    Tile capture = null;
+
+    //Adds a tile that will be captured by this move
+    public void setCapture(Tile tile)
+    {
+        this.capture = tile;
+    }
 
     public int getxFrom()
     {
@@ -50,6 +71,29 @@ public class Move
     int yFrom;
     int xTo;
     int yTo;
+
+    @Override
+    /**
+     * Only coordinates compared.
+     */
+    public boolean equals(Object object)
+    {
+        if (object == null)
+            return false;
+
+        Move move = (Move) object;
+
+        return     getxFrom() == move.getxFrom()
+                && getyFrom() == move.getyFrom()
+                && getxTo()   == move.getxTo()
+                && getyTo()   == move.getyTo();
+    }
+
+    public Move(int fromRow, int fromCol, int toRow, int toCol, Tile captureTile)
+    {
+        this(fromRow,fromCol,toRow,toCol);
+        setCapture(captureTile);
+    }
 
     public Move(int fromRow, int fromCol, int toRow, int toCol)
     {

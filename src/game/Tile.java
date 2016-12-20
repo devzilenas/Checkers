@@ -71,5 +71,10 @@ public class Tile
     {
         return isEmpty() ? false : getChecker().getCheckerColor() == checkerColor;
     }
+
+    public boolean hasColor(CheckerColor color)
+    {
+        return isEmpty() ? false : getChecker().getCheckerColor() == color;
+    }
 }
 

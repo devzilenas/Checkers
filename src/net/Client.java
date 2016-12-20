@@ -72,9 +72,15 @@ public class Client
         setCommunicationModule(new CommunicationModule(socket));
     }
 
-    public void makeMove(int fromRow, int fromCol, int toRow, int toCol)
+    public void makeMove(Move move)
     {
-        getCommunicationModule().say("MOVE " + new Move(fromRow, fromCol, toRow, toCol).toString2());
+        getCommunicationModule().say("MOVE " + move.toString2());
+    }
+
+    public void capture(int row, int col)
+    {
+        getCommunicationModule().say(
+                String.format("CAPTURE %d%,%d", row, col ));
     }
 
     public void informActionListener(String message)
@@ -91,6 +97,23 @@ public class Client
             message = getCommunicationModule().getLineBlocking();
             IMessageProcessor messageProcessor = new IMessageProcessor()
             {
+                public Move getLastMove()
+                {
+                    return lastMove;
+                }
+
+                public void setLastMove(Move lastMove)
+                {
+                    this.lastMove = lastMove;
+                }
+
+                public Move lastMove = null;
+
+                public boolean isCaptureOnLastMove()
+                {
+                    return getLastMove().isCapture();
+                }
+
                 public void process(String message)
                 {
                     if (null == message)
@@ -100,7 +123,8 @@ public class Client
                     {
                         informActionListener("YOUR TURN");
                         //getCommunicationModule().say("MOVE 1,1 2,1");
-                    } else if (message.startsWith("OPPONENT MOVE "))
+                    }
+                    else if (message.startsWith("OPPONENT MOVE "))
                     {
                         informActionListener(message);
 
@@ -111,11 +135,13 @@ public class Client
                         scanner.next();//skip words OPPONENT MOVE
                         String from = scanner.next();
                         String to = scanner.next();
-                        Move move = new Move(from, to);
+                        Move tempMove = new Move(from, to);
+                        Move move = getGame().capture(tempMove);
+                        setLastMove(move);
                         echo("Client received opponent move: " + move);
 
                         //write move
-                        getBoard().go(move.getxFrom(), move.getyFrom(), move.getxTo(), move.getyTo());
+                        getBoard().go(move);
                     }
                     else if (message.equals("YOU ARE PLAYING FOR BLACK"))
                     {
@@ -135,9 +161,14 @@ public class Client
                     }
                     else
                     {
-                        echo(String.format("Don't know how to process message \"%s\"", message));
+                        throw new IllegalArgumentException(
+                                String.format("Don't know how to process message \"%s\"", message));
                     }
                 }
+
+                @Override
+                public void process(String message, ServerConnection player) { }
+
                 public void echo(String message)
                 {
                     System.out.println(message);

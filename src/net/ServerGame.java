@@ -1,9 +1,11 @@
 package net;
 
 import game.*;
+import gui.CheckerColor;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Collection;
 import java.util.Scanner;
 
 /**
@@ -76,35 +78,113 @@ public class ServerGame
         say(player1(), "YOU ARE PLAYING FOR " + getGame().seatName(player1()));
         say(player2(), "YOU ARE PLAYING FOR " + getGame().seatName(player2()));
 
-        MessageProcessor processor = new MessageProcessor();
+        IMessageProcessor processor = new IMessageProcessor()
+        {
+            public Move getLastMove()
+            {
+                return lastMove;
+            }
+
+            public void setLastMove(Move lastMove)
+            {
+                this.lastMove = lastMove;
+            }
+
+            public Move lastMove = null;
+
+            public boolean isCaptureOnLastMove()
+            {
+                return getLastMove().isCapture();
+            }
+
+            @Override
+            public void process(String message)
+            {
+                //does nothing
+            }
+
+            @Override
+            public void process(String message, ServerConnection player)
+            {
+                if (message == null)
+                    throw new IllegalArgumentException("Message cannot be null.");
+
+                if (message.startsWith("MOVE "))
+                {
+                    // Move received.
+                    Scanner scanner = new Scanner(message);
+                    scanner.next();//skip word MOVE
+                    String from = scanner.next();
+                    String to   = scanner.next();
+                    Move tempMove = new Move(from, to);
+                    System.out.println("Server received client move: " + tempMove);
+                    Move move = getGame().capture(tempMove); //get move with capture information if move has capture.
+                    setLastMove(move);
+
+                    //Pass this move to opponent
+                    say(opponentOf(player),"OPPONENT MOVE " + move.toString2());
+
+                    //update board
+
+                    getGame().getBoard().go(move);
+                }
+                else
+                {
+                    throw new IllegalArgumentException(
+                        String.format("Don't know how to process message %s", message));
+                }
+            }
+        };
 
         ServerConnection winner = null;
-        while (!winningcondition())
+        ServerConnection currentPlayer = player1(); //current moving player
+        boolean hasMoved = false;
+        while (winner == null)
         {
-            say(player1(), "YOUR TURN");
-            processor.process(readLine(player1()), player1());
-
-            if (winningCondition()) //Check for winning condition. NOTE that there might be no possible move so then wins the one who moved last.
+            while (!hasMoved || (processor.isCaptureOnLastMove() && hasCaptures(currentPlayer)))
             {
-                winner = player1();
-                break;
-            }
+                say(currentPlayer, "YOUR TURN");
 
-            say(player2(), "YOUR TURN");
-            processor.process(readLine(player2()), player2());
-            if (winningCondition())
-            {
-                winner = player2();
-                break;
+                //get move from current player
+                processor.process(
+                        readLine(currentPlayer), currentPlayer);
+
+                winner = getWinner(currentPlayer);
+                if (winner != null)
+                {
+                    break;
+                }
+                hasMoved = true;
             }
+            currentPlayer = opponentOf(currentPlayer);
+            hasMoved = false;
+
+            // check draw and break if draw
         }
-        anounceWinner(winner);
+
+        if (winner != null)
+        {
+            anounceWinner(winner);
+        }
+        else
+        {
+            //anounce draw
+        }
     }
 
-    public boolean winningcondition()
+    private boolean hasCaptures(ServerConnection currentPlayer)
     {
-        //Check if no checkers left or no move possible.
-        return false;
+        return getGame().hasCaptures
+               (
+                   getGame().seatName(currentPlayer)
+               );
+    }
+
+    //Moving allowed if has moves
+    private boolean movingAllowed(ServerConnection currentPlayer)
+    {
+        CheckerColor color = getGame().seatName(currentPlayer);
+        return getGame().getAnyAllowedMove(color) != null;
     }
 
     public void anounceWinner(ServerConnection player)
@@ -113,47 +193,35 @@ public class ServerGame
         say(player, "YOU WIN!");
     }
 
-    public class MessageProcessor
+    /**
+     * Returns a winner or null if no winner yet.
+     * @return
+     */
+    ServerConnection getWinner(ServerConnection lastMovedPlayer)
     {
-        public MessageProcessor()
+        //See if opponent of lastMovedPlayer has any checkers left.
+
+        //Check if no checkers left or no move possible.
+        CheckerColor color = getGame().seatName(opponentOf(lastMovedPlayer));
+        Collection<Tile> withCheckers = getGame().getTilesWithCheckersOf(color);
+
+        //Opponent of last moved player has no checkers left then lastMovedPlayer has won.
+        if (withCheckers.isEmpty())
         {
+            return lastMovedPlayer;
         }
 
-        public void process(String message, ServerConnection player)
-        {
-            if (message == null)
-                throw new IllegalArgumentException("Message cannot be null.");
-
-            if (message.startsWith("MOVE "))
-            {
-                // Move received.
-                Scanner scanner = new Scanner(message);
-                scanner.next();//skip word MOVE
-                String from = scanner.next();
-                String to   = scanner.next();
-                Move move = new Move(from, to);
-                System.out.println("Server received client move: " + move);
-
-                //Pass this move to opponent
-                say(opponentOf(player),"OPPONENT MOVE " + move.toString2());
-
-                //update board
-                getGame().getBoard().go(move.getxFrom(), move.getyFrom(), move.getxTo(), move.getyTo());
-            }
-            else
-            {
-                echo(String.format("Don't know how to process message %s", message));
-            }
-        }
-
-        public void echo(String message)
-        {
-            System.out.println(String.format("Processing '%s'", message));
-        }
+        return null;
     }
 
-    public boolean winningCondition()
+    /**
+     * Check if player has won or lost.
+     * @param player
+     * @return
+     */
+    public boolean winningCondition(ServerConnection player)
     {
+
         return false;
     }
 

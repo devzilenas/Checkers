@@ -3,6 +3,7 @@ package gui;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collection;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -111,16 +112,41 @@ public class Grid
         int row = getRectangleRow(r);
         int col = getRectangleCol(r);
         Tile tile = getBoard().tile(row,col);
+
         if(getActiveRectangle() == null) //let it set, because no active previously
         {
-            //first check if allowed to set active
-            if (tile.getCheckerColor() != getMyColor())
+            //Empty tile do not set active
+            if (tile.isEmpty())
             {
                 return;
             }
+
+            // if not my color do not allow to activate
+            if (!tile.colorEquals(getMyColor()))
+            {
+                return;
+            }
+
+            //first check if allowed to move
+            if (!getGame().allMoves(tile).isEmpty())
+            {
+                //if there are capturing moves let activate only them
+                if (getGame().hasCaptures(getMyColor()))
+                {
+                    //see if from this tile is capturing
+                    if (getGame().hasCaptures(tile))
+                    {
+                        r.setActive(true);
+                    }
+                }
+                else //let activate any
+                {
+                    r.setActive(true);
+                }
+            }
             else
             {
-                r.setActive(true);
+                return;
             }
         }
         else //there was one rectangle active. suppose that client wants to make a move
@@ -133,33 +159,34 @@ public class Grid
             {
                 //let's remember what was the first selected rectangle
                 Rectangle r1 = getActiveRectangle();
-                r.setActive(true);
 
                 //now we can initiate a move from one rectangle that has checker to empty rectangle
                 int   toRow = getRectangleRow(r);
                 int   toCol = getRectangleCol(r);
                 int fromRow = getRectangleRow(r1);
                 int fromCol = getRectangleCol(r1);
-                Move move = new Move(fromRow, fromCol, toRow, toCol);
 
-                //Check if move is valid
-                //TODO add checkers moving rules check
+                List<Move> allMoves = new LinkedList<>(getGame().allMoves(fromRow, fromCol));
+                Move tempMove = new Move(fromRow, fromCol, toRow, toCol);//it is temporary move because it contains no capture information.
+
+                if (!allMoves.contains(tempMove)) //if allMoves do not contain this move. Then this move is invalid.
+                {
+                    //simply return doing nothing
+                    return;
+                }
+
+                Move move = allMoves.get(allMoves.indexOf(tempMove));//get move with capture information
+
+                //set current rectangle as active
+                r.setActive(true);
 
                 //if move is valid
-                if (getGame().isValidMove(move))
-                {
-                    //Update board
-                    getBoard().go(fromRow, fromCol, toRow, toCol);
-                    //Send message to client
-                    getClient().makeMove(fromRow, fromCol, toRow, toCol);
+                //Update board
+                getBoard().go(move);
+                //Send message to client
+                getClient().makeMove(move);
 
-                    setMyTurn(false);
-                }
-                else
-                {
-                    //else if move is invalid
-                    //do not update board
-                }
+                setMyTurn(false);
 
                 //in any case (valid or not valid move)
                 unsetActiveRectangles();
@@ -339,7 +366,8 @@ public class Grid
             if (getActiveRectangle().equals(r))
             {
                 r.setActive(false);
-            } else //some other rectangle was clicked
+            }
+            else //some other rectangle was clicked
             {
                 //If client tries to set more than two active rectangles then let client start over fresh
                 if (getActiveRectangles().size() == 2)

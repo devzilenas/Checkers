@@ -3,6 +3,10 @@ package game;
 import gui.Checker;
 import gui.CheckerColor;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+
 public class Board
 {
     Tile[] tiles = null;
@@ -23,21 +27,28 @@ public class Board
         return new CheckerColor[]{CheckerColor.WHITE, CheckerColor.BLACK};
     }
 
+    public void go(Move move)
+    {
+        go(move.getxFrom(), move.getyFrom(), move.getxTo(), move.getyTo());
+
+        //remove captured
+        if (move.isCapture())
+        {
+            Tile capture = move.getCapture();
+            capture.setChecker(null);
+        }
+    }
+
     public void go(int rowFrom, int colFrom, int rowTo, int colTo)
     {
-        System.out.println("Going from " + rowFrom + "," + colFrom);
-
         Tile movingTile = getTile(rowFrom, colFrom);
         Checker checker = movingTile.getChecker();
-        System.out.println("Found checker to move " + checker);
 
         Tile movingToTile = getTile(rowTo, colTo);
 
         //let's move a checker form one tile to another
         movingTile.setChecker(null);
         movingToTile.setChecker(checker);
-
-        System.out.println("Going to " + rowTo+ "," + colTo);
     }
 
     void initBoard()
@@ -83,25 +94,13 @@ public class Board
 
     public int getWidth()
     {
-        return width;
-    }
-
-    void setWidth(int width)
-    {
-        this.width = width;
+        return getCols();
     }
 
     int getHeight()
     {
-        return height;
+        return getRows();
     }
-
-    public void setHeight(int height)
-    {
-        this.height = height;
-    }
-
-    int width, height;
 
     public Board(int rows, int cols)
     {
@@ -141,5 +140,42 @@ public class Board
     boolean isEmpty(int x, int y)
     {
         return getTile(x,y).isEmpty();
+    }
+    public boolean validTile(int row, int col)
+    {
+        return row >= 0 && row < getWidth() && col >= 0 && col < getHeight();
+    }
+
+    /**
+     * Returns all left checkers of given color.
+     * @param color
+     * @return
+     */
+    Collection<Tile> getTilesWithCheckersOf(CheckerColor color)
+    {
+        Collection<Tile> tiles = new LinkedList<>();
+        for (Tile tile : getTiles())
+        {
+            if (tile.isOccupied() && tile.getCheckerColor() == color)
+            {
+                tiles.add(tile);
+            }
+        }
+        return tiles;
+    }
+
+    /**
+     * Gets row of tile.
+     * @param tile
+     * @return
+     */
+    public int tileRow(Tile tile)
+    {
+        return (Arrays.asList(getTiles()).indexOf(tile) - tileCol(tile)) / getCols();
+    }
+
+    public int tileCol(Tile tile)
+    {
+        return Arrays.asList(getTiles()).indexOf(tile) % getCols();
     }
 }
